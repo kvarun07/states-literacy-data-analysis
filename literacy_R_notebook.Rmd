@@ -1,0 +1,707 @@
+---
+title: "Econometrics - 1"
+subtitle: "Data Assignment"
+fontsize: 12pt
+spacing: double
+linestretch: 1.5
+output: pdf_document
+---
+
+\textbf{Name:} Varun Khurana
+
+\textbf{Roll No.:} 2019124\
+
+\hrule
+\
+\textbf{Question-1} 
+\
+Let us fetch the data set...
+
+```{r comment=""}
+df = read.csv("C:\\Users\\varun\\Desktop\\eco_assignment\\eco_dataset.csv")
+head(df, 5)
+```
+(a) Average GER of India from 2013-14 to 2015-16 = 87.02994
+```{r comment=""}
+a = mean(x = df$GER)
+print(a)
+```
+(b) 70.04178% of schools on an average are electrified.
+```{r comment=""}
+b = mean(x = df$EL)
+print(b)
+```
+(c) 94.89187% of schools on an average have drinking water facility.
+```{r comment=""}
+c = mean(x = df$DW)
+print(c)
+```
+(d) 91.92449% of schools on an average have boys toilets.
+```{r comment=""}
+d = mean(x = df$BT)
+print(d)
+```
+(e) 94.96692% of schools on an average have girls toilets.
+```{r comment=""}
+e = mean(x = df$GT)
+print(e)
+```
+(f) 40.40252% of schools on an average have computer labs.
+
+```{r comment=""}
+f = mean(x = df$CA)
+print(f)
+```
+\textbf{(g) Variance for above variables:} 
+\
+  (1) GER
+
+```{r comment=""}
+a = var(df$GER)
+print(a)
+```
+(2) Percentage of schools electrified
+
+```{r comment=""}
+a = var(df$EL)
+print(a)
+```
+
+(3) Percentage of schools having drinking water supply
+```{r comment=""}
+a = var(df$DW)
+print(a)
+```
+(4) Percentage of schools having boys toilets
+```{r comment=""}
+a = var(df$BT)
+print(a)
+```
+(5) Percentage of schools having girls toilets
+
+```{r comment=""}
+a = var(df$GT)
+print(a)
+```
+(6) Percentage of schools having computer facilities
+
+```{r comment=""}
+a = var(df$CA)
+print(a)
+```
+\textbf{(h) HISTOGRAMS:}
+\
+(1) Gross Enrollment Ratio (GER)\
+```{r echo=FALSE}
+hist(df$GER, 
+     main = "Histogram of GER", 
+     xlab = "Gross Enrollment Ratio (GER)", 
+     col = "#66ff00")
+```
+\
+\
+\
+(2) Drinking Water Facilities
+
+```{r echo=FALSE, out.width = "400px", fig.align='center'}
+hist(df$DW, 
+     main = "Histogram of DW Facilities", 
+     xlab = "Percentage of schools having Drinking Water Facility",
+     col = "ORANGE")
+```
+
+(3) Difference of boys and girls toilet availability 
+```{r echo=FALSE, out.width="400px", fig.align='center'}
+toilet_diff = df$BT - df$GT
+hist(toilet_diff, 
+     main = "Histogram of Difference in Toilet Facilities", 
+     xlab = "Difference in % of schools having boys toilets and girls toilets", 
+     col = "#FF0099")
+
+```
+
+\textbf{(i) Inference:} 
+
+* The Gross Enrollment Ratio (GER): It is fairly high. The average GER is 87.02%. 
+* A high percentage of schools in India are equipped with Drinking Water Facilities.
+* The difference between availability of boys toilets and girls toilets in schools is very narrow. 
+\
+\hrule
+
+\
+\textbf{Question-2}
+\
+Let us fetch the Literacy dataset and merge it with the current dataset. 
+\
+Note that the Literacy data is for the year 2011. However, Telangana was created as a new state in 2014. So it's literacy data is not available in the dataset.
+```{r}
+df2 = df
+df3 = read.csv("C:\\Users\\varun\\Desktop\\eco_assignment\\literacy_rates_dataset.csv")
+df2 = merge(df2, df3, by.x = "STATE", by.y = "State")
+```
+
+Let us drop the redundant columns in the merged dataset and rename the Literacy rate column as "LIT".
+```{r, comment="", message=FALSE}
+df2 = subset(df2, select = -c(Male, Female, S.No., X..Change))
+library(dplyr)
+df2 = rename(df2, LIT = Literacy)
+head(df2, 5)
+```
+
+We will now split the States into 3 categories -- HIGH, MEDIUM and LOW, based on their literacy rates.\
+LOW: 0-33 percentile of literacy rate \
+MEDIUM: 34-67 percentile of literacy rate \
+HIGH: 68-100 percentile of literacy rate
+
+
+```{r}
+a0 <- quantile(df2$LIT, 0.00)   # 0 %ile (min literacy rate)
+a <- quantile(df2$LIT, 0.33)    # 33 %ile 
+b <- quantile(df2$LIT, 0.67)    # 67 %ile
+c <- quantile(df2$LIT, 1.00)    # 100 %ile (max literacy rate)
+```
+
+
+```{r comment="", echo=FALSE}
+cat("Percentiles:\n")
+print(a0)
+cat("\n")
+print(a)
+cat("\n")
+print(b)
+cat("\n")
+print(c)
+```
+
+
+```{r echo=FALSE}
+# Now labelling each state as per their Literacy category
+df2$LIT_CATEGORY = c("")
+for (i in 1:length(df2$LIT)){
+  if (df2$LIT[i] <= a){
+    df2$LIT_CATEGORY[i] = "LOW"
+  }
+  else if (df2$LIT[i] > a && df2$LIT[i] <= b){
+    df2$LIT_CATEGORY[i] = "MEDIUM"
+  }
+  else if (df2$LIT[i] > b) {
+    df2$LIT_CATEGORY[i] = "HIGH"
+  }
+  else{
+    print("Missed...")
+  }
+}
+```
+
+
+```{r include=FALSE}
+count_high=0 
+count_low=0
+count_medium = 0
+count_total = 0
+length(df2$LIT_CATEGORY)
+for (i in 1:length(df2$LIT_CATEGORY)){
+  count_total = count_total +1
+  
+  if (df2$LIT_CATEGORY[i] == "HIGH"){
+    count_high = count_high +1
+  }
+  else if (df2$LIT_CATEGORY[i] == "MEDIUM"){
+    count_medium = count_medium +1
+  }
+  else if (df2$LIT_CATEGORY[i] == "LOW"){
+    count_low = count_low +1
+  }
+  else{
+      print("Missed... \n")
+  }
+}
+print(count_high)
+print(count_medium)
+print(count_low)
+print(count_high + count_medium + count_low)
+print(count_total)
+
+summary(df2$LIT_CATEGORY)
+```
+
+(a) Finding the mean of various parameters for these Literacy categories:
+
+* **Mean Gross Enrollment Ratio (GER)** 
+```{r comment="", echo=FALSE}
+df4 <- setNames(aggregate(x=df2$GER, by=list(df2$LIT_CATEGORY), 
+                          FUN=mean), c("LIT_CATEGORY", "GER"))
+df4 <- df4[order(-df4$GER),]
+rownames(df4) <- NULL
+knitr::kable(df4)
+```
+
+* **Mean Boys Toilet Availability**  
+```{r comment="", echo=FALSE}
+df4 <- setNames(aggregate(x=df2$BT, by=list(df2$LIT_CATEGORY), 
+                          FUN=mean), c("LIT_CATEGORY", "BT"))
+df4 <- df4[order(-df4$BT),]
+rownames(df4) <- NULL
+knitr::kable(df4)
+```
+
+* **Mean Girls Toilet Availability**
+```{r comment="", echo=FALSE}
+df4 <- setNames(aggregate(x=df2$GT, by=list(df2$LIT_CATEGORY), 
+                          FUN=mean), c("LIT_CATEGORY", "GT"))
+df4 <- df4[order(-df4$GT),]
+rownames(df4) <- NULL
+knitr::kable(df4)
+```
+
+* **Mean Drinking Water Facilities**
+```{r comment="", echo=FALSE}
+df4 <- setNames(aggregate(x=df2$DW, by=list(df2$LIT_CATEGORY), 
+                          FUN=mean), c("LIT_CATEGORY", "DW"))
+df4 <- df4[order(-df4$DW),]
+rownames(df4) <- NULL
+knitr::kable(df4)
+```
+
+* **Mean Electricity Availability**
+```{r comment="", echo=FALSE}
+df4 <- setNames(aggregate(x=df2$EL, by=list(df2$LIT_CATEGORY), 
+                          FUN=mean), c("LIT_CATEGORY", "EL"))
+df4 <- df4[order(-df4$EL),]
+rownames(df4) <- NULL
+knitr::kable(df4)
+```
+
+* **Mean Computer Facilities**
+```{r comment="", echo=FALSE}
+df4 <- setNames(aggregate(x=df2$CA, by=list(df2$LIT_CATEGORY), 
+                          FUN=mean), c("LIT_CATEGORY", "CA"))
+df4 <- df4[order(-df4$CA),]
+rownames(df4) <- NULL
+knitr::kable(df4)
+```
+
+(b) Pattern in the three Literacy Categories in terms of school enrollment and school infrastructure:
+
+* We can clearly observe that the High literacy states perform best in all metrics i.e. Gross Enrollment Ratio, Boys Toilet Availability, Girls Toilet Availability, Electricity Availability, Drinking Water Facilities and Computer Facilities, followed by Medium literacy states which perform better than the Low literacy states. 
+
+* There is an evident correspondence between the literacy rates and the school enrollment, infrastructure, facilities. 
+
+* Thus, we conclude that in order to improve the literacy rate in the country, we require greater investment on school infrastructure and better facilities for students so that they yield better learning outcomes and result in higher school enrollment.
+
+
+(c) 
+Now let us categorise the states according to the geographical and administrative criteria into the following groups: 
+
+* **NEHS**: North-east and Hilly States
+* **UTC**: Union Territories and City states
+* **SS**: Southern States
+* **OTH**: Other Major states
+
+We will add a column "STATE_CATEGORY" to indicate these categories for each state.
+```{r}
+df5 = df
+df5$STATE_CATEGORY = c("")
+```
+
+
+```{r comment="", echo=FALSE}
+for (i in 1:length(df5$STATE)) {
+  
+  if ((df5$STATE[i] == "Himachal Pradesh") || 
+      (df5$STATE[i] == "Uttarakhand") || 
+      (df5$STATE[i] == "Manipur") || 
+      (df5$STATE[i] == "Sikkim") || 
+      (df5$STATE[i] == "Mizoram") || 
+      (df5$STATE[i] == "Assam") || 
+      (df5$STATE[i] == "Arunachal Pradesh") || 
+      (df5$STATE[i] == "Nagaland") || 
+      (df5$STATE[i] == "Tripura") || 
+      (df5$STATE[i] == "Meghalaya")){
+    df5$STATE_CATEGORY[i] = "NEHS"
+  }
+  
+  else if ((df5$STATE[i] == "Delhi") || 
+          (df5$STATE[i] == "Chandigarh") || 
+          (df5$STATE[i] == "Daman & Diu") || 
+          (df5$STATE[i] == "Puducherry") || 
+          (df5$STATE[i] == "Goa") || 
+          (df5$STATE[i] == "Dadra & Nagar Haveli") || 
+          (df5$STATE[i] == "Andaman & Nicobar Islands") || 
+          (df5$STATE[i] == "Jammu & Kashmir") || 
+          (df5$STATE[i] == "Lakshadweep") || 
+          (df5$STATE[i] == "") || 
+          (df5$STATE[i] == "")){
+    df5$STATE_CATEGORY[i] = "UTC"
+  }
+  
+  else if ((df5$STATE[i] == "Karnataka") || 
+          (df5$STATE[i] == "Maharashtra") || 
+          (df5$STATE[i] == "Tamil Nadu") || 
+          (df5$STATE[i] == "Telangana") || 
+          (df5$STATE[i] == "Kerala") || 
+          (df5$STATE[i] == "Andhra Pradesh") || 
+          (df5$STATE[i] == "Odisha")){
+    df5$STATE_CATEGORY[i] = "SS"
+  }
+  
+  else if ((df5$STATE[i] == "Haryana") || 
+          (df5$STATE[i] == "Gujarat") || 
+          (df5$STATE[i] == "Punjab") || 
+          (df5$STATE[i] == "Uttar Pradesh") || 
+          (df5$STATE[i] == "Rajasthan") || 
+          (df5$STATE[i] == "Madhya Pradesh") || 
+          (df5$STATE[i] == "Jharkhand") || 
+          (df5$STATE[i] == "Bihar") || 
+          (df5$STATE[i] == "Chhattisgarh") || 
+          (df5$STATE[i] == "West Bengal")){
+    df5$STATE_CATEGORY[i] = "OTH"
+  }
+  
+  else{
+    df5$STATE_CATEGORY[i] = "Missed !"
+    cat("\nMissed...", i)
+  }
+}
+```
+
+```{r comment=""}
+head(df5, 5)
+```
+Now, let us compare the mean and variance of various parameters for each of these State groups.
+
+* Gross Enrollment Ratio **(GER)**
+
+```{r echo=FALSE}
+df6 <- setNames(aggregate(x=df5$GER, by=list(df5$STATE_CATEGORY), 
+                          FUN=mean), c("STATE_CATEGORY", "Mean_GER"))
+df7 <- setNames(aggregate(x=df5$GER, by=list(df5$STATE_CATEGORY), 
+                          FUN=var), c("STATE_CATEGORY", "Variance_GER"))
+df6 <- merge(df6, df7, by.x = "STATE_CATEGORY", by.y = "STATE_CATEGORY")
+df6 <- df6[order(-df6$Mean_GER),]
+rownames(df6) <- NULL
+knitr::kable(df6)
+```
+
+* Drinking Water Facility **(DW)**
+```{r echo=FALSE}
+df6 <- setNames(aggregate(x=df5$DW, by=list(df5$STATE_CATEGORY), 
+                          FUN=mean), c("STATE_CATEGORY", "Mean_DW"))
+df7 <- setNames(aggregate(x=df5$DW, by=list(df5$STATE_CATEGORY), 
+                          FUN=var), c("STATE_CATEGORY", "Variance_DW"))
+df6 <- merge(df6, df7, by.x = "STATE_CATEGORY", by.y = "STATE_CATEGORY")
+df6 <- df6[order(-df6$Mean_DW),]
+rownames(df6) <- NULL
+knitr::kable(df6)
+```
+
+* Electricity Facility **(EL)**
+
+```{r echo=FALSE}
+df6 <- setNames(aggregate(x=df5$EL, by=list(df5$STATE_CATEGORY), 
+                          FUN=mean), c("STATE_CATEGORY", "Mean_EL"))
+df7 <- setNames(aggregate(x=df5$EL, by=list(df5$STATE_CATEGORY), 
+                          FUN=var), c("STATE_CATEGORY", "Variance_EL"))
+df6 <- merge(df6, df7, by.x = "STATE_CATEGORY", by.y = "STATE_CATEGORY")
+df6 <- df6[order(-df6$Mean_EL),]
+rownames(df6) <- NULL
+knitr::kable(df6)
+```
+\
+
+* Boys Toilet Availability **(BT)**
+
+```{r echo=FALSE}
+df6 <- setNames(aggregate(x=df5$BT, by=list(df5$STATE_CATEGORY), 
+                          FUN=mean), c("STATE_CATEGORY", "Mean_BT"))
+df7 <- setNames(aggregate(x=df5$BT, by=list(df5$STATE_CATEGORY), 
+                          FUN=var), c("STATE_CATEGORY", "Variance_BT"))
+df6 <- merge(df6, df7, by.x = "STATE_CATEGORY", by.y = "STATE_CATEGORY")
+df6 <- df6[order(-df6$Mean_BT),]
+rownames(df6) <- NULL
+knitr::kable(df6)
+```
+
+* Girls Toilet Availability **(GT)**
+```{r echo=FALSE}
+df6 <- setNames(aggregate(x=df5$GT, by=list(df5$STATE_CATEGORY), 
+                          FUN=mean), c("STATE_CATEGORY", "Mean_GT"))
+df7 <- setNames(aggregate(x=df5$GT, by=list(df5$STATE_CATEGORY), 
+                          FUN=var), c("STATE_CATEGORY", "Variance_GT"))
+df6 <- merge(df6, df7, by.x = "STATE_CATEGORY", by.y = "STATE_CATEGORY")
+df6 <- df6[order(-df6$Mean_GT),]
+rownames(df6) <- NULL
+knitr::kable(df6)
+```
+
+* Computer Facilities **(CA)**
+```{r echo=FALSE}
+df6 <- setNames(aggregate(x=df5$CA, by=list(df5$STATE_CATEGORY), 
+                          FUN=mean), c("STATE_CATEGORY", "Mean_CA"))
+df7 <- setNames(aggregate(x=df5$CA, by=list(df5$STATE_CATEGORY), 
+                          FUN=var), c("STATE_CATEGORY", "Variance_CA"))
+df6 <- merge(df6, df7, by.x = "STATE_CATEGORY", by.y = "STATE_CATEGORY")
+df6 <- df6[order(-df6$Mean_CA),]
+rownames(df6) <- NULL
+knitr::kable(df6)
+```
+
+In general, we observe that the UTC group has relatively higher values of mean for most parameters. This suggests that Union Territories and City States fare the best in terms of school infrastructure followed by the Southern States. They also have high school enrollment ratio standing second after the North Eastern and Hilly States.
+\
+\hrule
+\
+\textbf{Question-3}
+\
+\
+(a) Regression Model for Gross Enrollment Ratio (GER)
+$$GER_i = \beta_0 + \beta_1DW_i + \beta_2BT_i + \beta_3GT_i + \beta_4EL_i + \beta_5CA_i + u_i$$
+
+```{r comment="", echo=FALSE}
+df8 <- df
+reg_a <- lm(GER ~ DW + BT + GT + EL + CA, data=df8)
+summary(reg_a)
+```
+(i) Regression coefficients: \
+$\beta_0 = 112.6164$ \
+$\beta_1 = -0.67651$ \
+$\beta_2 = 0.09368$ \
+$\beta_3 = 0.26601$ \
+$\beta_4 = 0.02865$ \
+$\beta_5 = 0.06753$ \
+
+(ii) Variance of regression coefficients:
+$$V[ \hat\beta_{OLS} ] = \hat\sigma^2(X'X)^{-1}$$
+This gives the variance-covariance matrix of $\hat\beta_{OLS}$. \
+In this matrix each entry $a_{i,j}$:
+\begin{equation}
+a_{i,j} = 
+\begin{cases} 
+cov(\beta_{i}, \beta_{j}) & \text{; } i \neq j \\
+var(\beta{i})         & \text{; } i = j
+\end{cases}
+\end{equation}
+
+```{r comment="", echo=FALSE}
+X <- model.matrix(reg_a)
+sigma_sq <- (summary(reg_a)$sigma)**2      # sigma^2
+inv_matrix <- solve(t(X) %*% X)            # (X'X) inverse
+var_beta_a <- sigma_sq*inv_matrix
+options(digits = 4)
+#var_beta_a
+knitr::kable(var_beta_a)
+```
+
+The diagonal entries of this matrix will give the variance of the regression coefficients.
+```{r comment="", echo=FALSE}
+options(scipen=1, digits = 4)
+knitr::kable(diag(var_beta_a), col.names = c("Variance"))
+options(scipen=0, digits=7)
+```
+
+```{r include=FALSE}
+var_a <- vcov(reg_a)
+var_a
+```
+
+(iii) Estimate of $\hat\sigma^2$:
+$$\hat\sigma^2 = 115.3048$$
+```{r include=FALSE}
+(summary(reg_a)$sigma)**2
+```
+
+
+(b) Regression model for GER by incorporating dummy variables for Literacy rate groups.
+In this case, let $H_i, M_i, L_i$ be dummy variables such that:
+\begin{equation}
+\begin{cases} 
+H_i=1, M_i=0, L_i=0 & \text{for } \text{High literacy State} \\
+H_i=0, M_i=1, L_i=0 & \text{for } \text{Medium literacy State} \\
+H_i=0, M_i=0, L_i=1 & \text{for } \text{Low literacy State} 
+\end{cases}
+\end{equation}
+
+```{r include=FALSE}
+df9 = df2
+df9$H = c(0)
+df9$M = c(0)
+df9$L = c(0)
+```
+
+
+```{r include=FALSE}
+for (i in 1:length(df9$LIT_CATEGORY)){
+  if (df9$LIT_CATEGORY[i] == "HIGH"){
+    df9$H[i] = 1
+  }
+  else if (df9$LIT_CATEGORY[i] == "MEDIUM"){
+    df9$M[i] = 1
+  }
+  else if (df9$LIT_CATEGORY[i] == "LOW"){
+    df9$L[i] = 1
+  }
+  else {
+    cat("Missed:", i, "\n")
+  }
+}
+```
+  
+If we include all 3 dummy variables, $H_i, M_i, L_i$ along with intercept in the regression model, then it will lead to **dummy variable trap**. Consequently, we will not be able to estimate the regression. \
+This is because, for any $i^{th}$ observation, $H_i + M_i + L_i = 1$ always. If $X$ denotes the matrix of explanatory variables, then the columns of $X$ will not be linearly independent, i.e. $X$ will not have full rank. \
+So, let us include only 2 dummy variables, $H_i, M_i$ in the regression model specified as follows:
+$$GER_i = \beta_0 + \beta_1DW_i + \beta_2BT_i + \beta_3GT_i + \beta_4EL_i + \beta_5CA_i + \beta_6H_i + \beta_7M_i + u_i$$
+
+```{r comment="", echo=FALSE}
+reg_b <- lm(GER ~ DW + BT + GT + EL + CA + H + M, data=df9)
+summary(reg_b)
+```
+(i) Regression coefficients: \
+$\beta_0 = 116.552942$ \
+$\beta_1 = -0.591844$ \
+$\beta_2 = 0.002202$ \
+$\beta_3 = 0.229264$ \
+$\beta_4 = -0.025867$ \
+$\beta_5 = -0.002953$ \
+$\beta_6 = 12.609311$ \
+$\beta_7 = 7.838742$ \
+
+(ii) Variance of regression coefficients:
+$$V[ \hat\beta_{OLS} ] = \hat\sigma^2(X'X)^{-1}$$
+This gives the variance-covariance matrix of $\hat\beta_{OLS}$. \
+In this matrix each entry $a_{i,j}$:
+\begin{equation}
+a_{i,j} = 
+\begin{cases} 
+cov(\beta_{i}, \beta_{j}) & \text{; } i \neq j \\
+var(\beta{i})         & \text{; } i = j
+\end{cases}
+\end{equation}
+
+```{r comment="", echo=FALSE}
+X <- model.matrix(reg_b)
+sigma_sq <- (summary(reg_b)$sigma)**2      # sigma^2
+inv_matrix <- solve(t(X) %*% X)            # (X'X) inverse
+var_beta_b <- sigma_sq*inv_matrix
+options(digits = 4)
+#var_beta_b
+knitr::kable(var_beta_b)
+```
+The diagonal entries of this matrix will give the variance of the regression coefficients.
+```{r echo=FALSE}
+options(scipen=1, digits = 4)
+knitr::kable(diag(var_beta_b), col.names = c("Variance"))
+options(scipen=0, digits=7)
+```
+\
+(iii) Estimate of $\hat\sigma^2$:
+$$\hat\sigma^2 = 107.6256$$
+```{r include=FALSE}
+(summary(reg_b)$sigma)**2
+```
+\
+(c) Regression model for GER by incorporating dummy variables for geographical and administrative groups of States.
+In this case, let $N_i, U_i, S_i, O_i$ be dummy variables such that:
+\begin{equation}
+\begin{cases} 
+N_i=1, U_i=0, S_i=0, O_i=0 & \text{for } \text{North-Eastern \& Hilly States} \\
+N_i=0, U_i=1, S_i=0, O_i=0 & \text{for } \text{Union Territories \& City States} \\
+N_i=0, U_i=0, S_i=1, O_i=0 & \text{for } \text{Southern States} \\
+N_i=0, U_i=0, S_i=0, O_i=1 & \text{for } \text{Other States} 
+\end{cases}
+\end{equation}
+
+```{r include=FALSE}
+df10 = df5
+df10$N = c(0)
+df10$U = c(0)
+df10$S = c(0)
+df10$O = c(0)
+```
+
+
+```{r include=FALSE}
+for (i in 1:length(df10$STATE_CATEGORY)){
+  if (df10$STATE_CATEGORY[i] == "NEHS"){
+    df10$N[i] = 1
+  }
+  else if (df10$STATE_CATEGORY[i] == "UTC"){
+    df10$U[i] = 1
+  }
+  else if (df10$STATE_CATEGORY[i] == "SS"){
+    df10$S[i] = 1
+  }
+  else if (df10$STATE_CATEGORY[i] == "OTH"){
+    df10$O[i] = 1
+  }
+  else {
+    cat("Missed:", i, "\n")
+  }
+}
+```
+
+If we include all 4 dummy variables, $N_i, U_i, S_i, O_i$ along with intercept in the regression model, then it will lead to **dummy variable trap**. Consequently, we will not be able to estimate the regression. \
+This is because, for any $i^{th}$ observation, $N_i+U_i+S_i+O_i = 1$ always. If $X$ denotes the matrix of explanatory variables, then the columns of $X$ will not be linearly independent, i.e. $X$ will not have full rank. \
+So, let us include only 3 dummy variables, $N_i, U_i, S_i$ in the regression model specified as follows:
+$$GER_i = \beta_0 + \beta_1DW_i + \beta_2BT_i + \beta_3GT_i + \beta_4EL_i + \beta_5CA_i + \beta_6N_i + \beta_7U_i + \beta_8S_i + u_i$$
+```{r comment="", echo=FALSE}
+reg_c <- lm(GER ~ DW + BT + GT + EL + CA + N + U + S, data=df10)
+summary(reg_c)
+```
+(i) Regression coefficients: \
+$\beta_0 = 71.28151$ \
+$\beta_1 = 0.07606$ \
+$\beta_2 = 0.05626$ \
+$\beta_3 = -0.07686$ \
+$\beta_4 = 0.04622$ \
+$\beta_5 = 0.13133$ \
+$\beta_6 = 14.58855$ \
+$\beta_7 = -4.48196$ \
+$\beta_8 = -4.51642$ \
+
+(ii) Variance of regression coefficients:
+$$V[ \hat\beta_{OLS} ] = \hat\sigma^2(X'X)^{-1}$$
+This gives the variance-covariance matrix of $\hat\beta_{OLS}$. \
+In this matrix each entry $a_{i,j}$:
+\begin{equation}
+a_{i,j} = 
+\begin{cases} 
+cov(\beta_{i}, \beta_{j}) & \text{; } i \neq j \\
+var(\beta{i})         & \text{; } i = j
+\end{cases}
+\end{equation}
+
+```{r comment="", echo=FALSE}
+X <- model.matrix(reg_c)
+sigma_sq <- (summary(reg_c)$sigma)**2      # sigma^2
+inv_matrix <- solve(t(X) %*% X)            # (X'X) inverse
+var_beta_c <- sigma_sq*inv_matrix
+options(digits = 3)
+#var_beta_c
+knitr::kable(var_beta_c)
+```
+
+
+```{r include=FALSE}
+vcov(reg_c)
+```
+The diagonal entries of this matrix will give the variance of the regression coefficients.
+```{r echo=FALSE}
+options(scipen=1, digits = 4)
+knitr::kable(diag(var_beta_c), col.names = c("Variance"))
+options(scipen=0, digits=7)
+```
+\
+(iii) Estimate of $\hat\sigma^2$:
+$$\hat\sigma^2 = 82.67839$$
+
+```{r include=FALSE}
+(summary(reg_c)$sigma)**2
+```
+\
+\hrule
+\
+```{r}
+
+```
+
+
+
